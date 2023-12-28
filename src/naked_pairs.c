@@ -1,6 +1,8 @@
 #include "sudoku.h"
+#include "naked_pairs.h"
+#include "has_same_candidates.h"
+#include "check_box.h"
 
-// Add function declarations at the beginning of your file or in your header file
 int has_same_candidates(Cell *cell1, Cell *cell2);
 int check_box(Cell **box, int num_box_cells, Cell *cell1, Cell *cell2);
 int check_candidate(Cell *cell, int value);
@@ -26,13 +28,22 @@ int naked_pairs(SudokuBoard *p_board)
 
                         if (cell != box[i] && cell != box[j])
                         {
-                            for (int l = 0; l < cell->num_candidates; l++)
+                            for (int l = 0; l < cell->num_candidates;)
                             {
                                 if (check_candidate(box[i], cell->candidates[l]) && check_candidate(box[j], cell->candidates[l]))
                                 {
-                                    cell->candidates[l] = 0;
+                                    // Remove the common candidate
+                                    for (int m = l; m < cell->num_candidates - 1; m++)
+                                    {
+                                        cell->candidates[m] = cell->candidates[m + 1];
+                                    }
                                     cell->num_candidates--;
                                     num_changes++;
+                                }
+                                else
+                                {
+                                    // Move to the next candidate
+                                    l++;
                                 }
                             }
                         }

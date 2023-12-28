@@ -5,6 +5,7 @@
 #include <stdlib.h>
 
 #include "hidden_singles.h"
+#include "hidden_pairs.h"
 
 int main(int argc, char **argv)
 {
@@ -29,12 +30,13 @@ int main(int argc, char **argv)
             // printf("show_possible -> Yes\n");
             continue;
         }
-        // solved_counter = hidden_singles(board);
-        // if (solved_counter)
-        // {
-        //     printf("hidden_singles %d\n", solved_counter);
-        //     continue;
-        // }
+        solved_counter = hidden_singles(board);
+        if (solved_counter)
+        {
+            printf("hidden_singles %d\n", solved_counter);
+            continue;
+        }
+        break;
     }
     print_solution(board);
 

@@ -1,5 +1,6 @@
-#include "naked_triples.h"
+// naked_triples.c
 
+#include "naked_triples.h"
 bool check_candidate(Cell *cell, int value);
 
 bool find_triple(SudokuBoard *p_board, Cell *p, Cell *q, int value)
@@ -20,14 +21,14 @@ bool find_triple(SudokuBoard *p_board, Cell *p, Cell *q, int value)
     return false;
 }
 
-bool is_candidate(Cell *cell, int value)
+bool has_candidate(Cell *cell, int value)
 {
-    return cell->candidates[value - 1] != 0;
+    return cell->candidates[value - 1] == 1;
 }
 
 bool check_candidate(Cell *cell, int value)
 {
-    return is_candidate(cell, value);
+    return has_candidate(cell, value);
 }
 
 bool is_naked_triple(SudokuBoard *p_board, Cell *cell)
@@ -73,11 +74,9 @@ int naked_triples(SudokuBoard *p_board)
             {
                 for (int k = 0; k < BOARD_SIZE; k++)
                 {
-                    if (k != cell->candidates[k - 1] - 1)
-                    {
-                        unset_candidate(cell, k + 1);
-                        changed++;
-                    }
+                    // Ensure the unset_candidate function is declared
+                    unset_candidate(cell, k + 1);
+                    changed++;
                 }
             }
         }

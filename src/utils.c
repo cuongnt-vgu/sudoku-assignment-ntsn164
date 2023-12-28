@@ -4,6 +4,7 @@
 
 #include "sudoku.h"
 
+
 void init_sudoku(SudokuBoard *p_board)
 {
     p_board->data = malloc(BOARD_SIZE * sizeof(Cell *));
