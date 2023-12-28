@@ -1,6 +1,6 @@
 #include "hidden_pairs.h"
 #include "candidates.h"
-
+// Update
 bool check_pairs(Cell *cells, int size, int num) {
     int pair_count = 0;
 
