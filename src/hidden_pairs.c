@@ -1,80 +1,65 @@
 #include "hidden_pairs.h"
-#include <string.h>
-void unset_candidates_in_box(Cell **box_cells, int *box_candidates, int candidate)
-{
-    for (int i = 0; i < BOARD_SIZE; ++i)
-    {
-        if (box_cells[i]->value == 0 && is_candidate(box_cells[i], candidate))
-        {
-            unset_candidate(box_cells[i], candidate);
+#include "candidates.h"
+
+bool check_pairs(Cell *cells, int size, int num) {
+    int pair_count = 0;
+
+    for (int i = 0; i < size; i++) {
+        if (cells[i].value == num) {
+            pair_count++;
         }
     }
+
+    return pair_count == 2;
 }
 
-bool has_hidden_pairs(int *box_candidates)
-{
-    for (int i = 0; i < BOARD_SIZE; ++i)
-    {
-        if (box_candidates[i] == HIDDEN_PAIR_CANDIDATES)
-        {
-            for (int j = i + 1; j < BOARD_SIZE; ++j)
-            {
-                if (box_candidates[j] == HIDDEN_PAIR_CANDIDATES)
-                {
-                    return true;
-                }
-            }
+bool check_pairs_in_list(Cell *p_array, int size, int num) {
+    for (int i = 0; i < size; i++) {
+        if (p_array[i].value == num) {
+            return true;
         }
     }
+
     return false;
 }
 
-void hidden_pairs(SudokuBoard *p_board)
-{
-    if (p_board == NULL)
-    {
-        return;
-    }
+int hidden_pairs(SudokuBoard *p_board) {
+    int changed_count = 0;
 
-    for (int box_index = 0; box_index < BOARD_SIZE; ++box_index)
-    {
-        Cell **box_cells = p_board->p_boxes[box_index];
-        int box_candidates[BOARD_SIZE];
-        memset(box_candidates, 0, sizeof(box_candidates));
+    for (int i = 0; i < BOARD_SIZE; i++) {
+        for (int j = 0; j < BOARD_SIZE; j++) {
+            Cell *current_cell = &p_board->data[i][j];
 
-        // Count candidates in the box
-        for (int i = 0; i < BOARD_SIZE; ++i)
-        {
-            Cell *cell = box_cells[i];
-            if (cell->value == 0)
-            {
-                for (int j = 0; j < cell->num_candidates; ++j)
-                {
-                    box_candidates[cell->candidates[j]]++;
-                }
-            }
-        }
-
-        // Check for hidden pairs
-        if (has_hidden_pairs(box_candidates))
-        {
-            for (int k = 0; k < BOARD_SIZE; ++k)
-            {
-                if (box_candidates[k] == HIDDEN_PAIR_CANDIDATES)
-                {
-                    unset_candidates_in_box(box_cells, box_candidates, k);
-                }
+            if (current_cell->value != 0) {
+                continue;
             }
 
-            // Set values for cells with a single candidate
-            for (int i = 0; i < BOARD_SIZE; ++i)
-            {
-                Cell *cell = box_cells[i];
-                if (cell->value == 0 && cell->num_candidates == 1)
-                {
-                    set_candidate(cell, cell->candidates[0]);
+            int row_size = BOARD_SIZE;
+            int col_size = BOARD_SIZE;
+            int box_size = BOARD_SIZE;
+
+            Cell *row_cells = p_board->data[i];
+            Cell *col_cells = p_board->data[0] + j;
+            Cell *box_cells = &p_board->data[i / BOARD_SIZE * BOARD_SIZE][j / BOARD_SIZE * BOARD_SIZE];
+
+            for (int num = 1; num <= BOARD_SIZE; num++) {
+                if (check_pairs(row_cells, row_size, num) && !check_pairs_in_list(col_cells, col_size, num) && !check_pairs_in_list(box_cells, box_size, num)) {
+                    remove_candidate(current_cell, num);
+                    changed_count++;
+                }
+
+                if (check_pairs(col_cells, col_size, num) && !check_pairs_in_list(row_cells, row_size, num) && !check_pairs_in_list(box_cells, box_size, num)) {
+                    remove_candidate(current_cell, num);
+                    changed_count++;
+                }
+
+                if (check_pairs(box_cells, box_size, num) && !check_pairs_in_list(row_cells, row_size, num) && !check_pairs_in_list(col_cells, col_size, num)) {
+                    remove_candidate(current_cell, num);
+                    changed_count++;
                 }
             }
         }
     }
+
+    return changed_count;
 }

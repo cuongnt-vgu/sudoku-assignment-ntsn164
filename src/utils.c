@@ -4,6 +4,7 @@
 
 #include "sudoku.h"
 
+
 void init_sudoku(SudokuBoard *p_board)
 {
     p_board->data = malloc(BOARD_SIZE * sizeof(Cell *));
@@ -61,19 +62,12 @@ void print_solution(SudokuBoard *p_board)
         for (int j = 0; j < BOARD_SIZE; j++)
         {
             int *candidates = get_candidates(&p_board->data[i][j]);
-            printf("[%d, %d]: ", i, j);
-            for (int k = 0; k < p_board->data[i][j].num_candidates; k++)
-            {
-                printf("%d ", candidates[k]);
-            }
-            printf("\n");
+            printf("%d", candidates[0]);
             free(candidates);
         }
     }
 }
-void free_candidates(int *candidates) {
-    free(candidates);
-}
+
 void set_candidate(Cell *cell, int value)
 {
     cell->candidates[value - 1] = 1;
@@ -226,16 +220,4 @@ void print_candidate_num(SudokuBoard *p_board)
         }
         printf("\n");
     }
-}
-
-int are_values_in_same_cells(Cell **p_cells, int value1, int value2) {
-    int cell_count = 0;
-
-    for (int i = 0; i < BOARD_SIZE; ++i) {
-        if (is_candidate(p_cells[i], value1) && is_candidate(p_cells[i], value2)) {
-            cell_count++;
-        }
-    }
-
-    return cell_count == 2; 
 }
