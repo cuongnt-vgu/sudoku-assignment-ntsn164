@@ -2,16 +2,13 @@
 
 #include "sudoku.h"
 
+#define HIDDEN_PAIR_CANDIDATES 2  // Replace 2 with the actual value
+
 typedef struct HiddenPairInfo {
     Cell *firstCell;
     Cell *secondCell;
     int firstValue;
     int secondValue;
-} HiddenPairInfo;
+} HiddenPair;
 
-int locateHiddenPairs(SudokuBoard *board);
-void identifyHiddenPairs(Cell **cells, HiddenPairInfo *hiddenPairs, int *pairCount);
-int discoverHiddenPairValues(Cell **cells, int *hiddenPairValues);
-int detectOverlapInHiddenPairs(HiddenPairInfo *hiddenPairs, int pairCount);
-
-
+void hidden_pairs(SudokuBoard *p_board);

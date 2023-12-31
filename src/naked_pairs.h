@@ -1,6 +1,9 @@
 #pragma once
 
 #include "sudoku.h"
+#define BOX_SIZE 3
+#define MAX_PAIRS 81
+
 typedef struct NakedPair_impl 
 {
     Cell *p_cell1;
