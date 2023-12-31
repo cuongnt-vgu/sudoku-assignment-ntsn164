@@ -6,7 +6,6 @@
 
 #include "hidden_singles.h"
 #include "hidden_pairs.h"
-
 int main(int argc, char **argv)
 {
     if (argc != 2)
@@ -21,13 +20,14 @@ int main(int argc, char **argv)
 
     Cell **p_solved_cells = board->solved_cells;
     int solved_counter = board->solved_counter;
+
     while (board->solved_counter < BOARD_SIZE * BOARD_SIZE)
     {
         solved_counter = check_solved_cells(board, &p_solved_cells);
-        // printf("check_solved_cells %d\n", solved_counter);
+        printf("check_solved_cells %d\n", solved_counter);
         if (show_possible(board, p_solved_cells, solved_counter))
         {
-            // printf("show_possible -> Yes\n");
+            printf("show_possible -> Yes\n");
             continue;
         }
         solved_counter = hidden_singles(board);
@@ -36,7 +36,6 @@ int main(int argc, char **argv)
             printf("hidden_singles %d\n", solved_counter);
             continue;
         }
-        break;
     }
     print_solution(board);
 

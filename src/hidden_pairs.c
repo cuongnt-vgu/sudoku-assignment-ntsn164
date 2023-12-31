@@ -1,65 +1,113 @@
+#include <stdbool.h>
 #include "hidden_pairs.h"
-#include "candidates.h"
-// Update
-bool check_pairs(Cell *cells, int size, int num) {
-    int pair_count = 0;
 
-    for (int i = 0; i < size; i++) {
-        if (cells[i].value == num) {
-            pair_count++;
-        }
-    }
+// Implement other necessary functions and structures here
 
-    return pair_count == 2;
-}
+int discoverHiddenPairValues(Cell **cells, int *hiddenPairValues) {
+    int pairCandidates = 0;
+    int arrayOfHiddenPairValues[BOARD_SIZE] = {0};
 
-bool check_pairs_in_list(Cell *p_array, int size, int num) {
-    for (int i = 0; i < size; i++) {
-        if (p_array[i].value == num) {
-            return true;
-        }
-    }
+    // Count the occurrences of candidates in the row, avoiding duplicates
+    for (int i = 0; i < BOARD_SIZE; ++i) {
+        if (cells[i]->num_candidates > 1) {
+            int *candidates = getCandidates(cells[i]);
 
-    return false;
-}
-
-int hidden_pairs(SudokuBoard *p_board) {
-    int changed_count = 0;
-
-    for (int i = 0; i < BOARD_SIZE; i++) {
-        for (int j = 0; j < BOARD_SIZE; j++) {
-            Cell *current_cell = &p_board->data[i][j];
-
-            if (current_cell->value != 0) {
-                continue;
+            for (int j = 0; j < cells[i]->num_candidates; ++j) {
+                int candidate = candidates[j];
+                arrayOfHiddenPairValues[candidate - 1]++;
             }
 
-            int row_size = BOARD_SIZE;
-            int col_size = BOARD_SIZE;
-            int box_size = BOARD_SIZE;
+            free(candidates);
+        }
+    }
 
-            Cell *row_cells = p_board->data[i];
-            Cell *col_cells = p_board->data[0] + j;
-            Cell *box_cells = &p_board->data[i / BOARD_SIZE * BOARD_SIZE][j / BOARD_SIZE * BOARD_SIZE];
+    for (int i = 0; i < BOARD_SIZE; ++i) {
+        if (arrayOfHiddenPairValues[i] == 2) {
+            hiddenPairValues[pairCandidates++] = i + 1;
+        }
+    }
 
-            for (int num = 1; num <= BOARD_SIZE; num++) {
-                if (check_pairs(row_cells, row_size, num) && !check_pairs_in_list(col_cells, col_size, num) && !check_pairs_in_list(box_cells, box_size, num)) {
-                    remove_candidate(current_cell, num);
-                    changed_count++;
-                }
+    return pairCandidates;
+}
 
-                if (check_pairs(col_cells, col_size, num) && !check_pairs_in_list(row_cells, row_size, num) && !check_pairs_in_list(box_cells, box_size, num)) {
-                    remove_candidate(current_cell, num);
-                    changed_count++;
-                }
+void identifyHiddenPairs(Cell **cells, HiddenPairInfo *hiddenPairs, int *pairCount) {
+    int hiddenPairValues[BOARD_SIZE];
+    int numPairs = discoverHiddenPairValues(cells, hiddenPairValues);
 
-                if (check_pairs(box_cells, box_size, num) && !check_pairs_in_list(row_cells, row_size, num) && !check_pairs_in_list(col_cells, col_size, num)) {
-                    remove_candidate(current_cell, num);
-                    changed_count++;
+    for (int i = 0; i < numPairs - 1; ++i) {
+        for (int k = i + 1; k < numPairs; ++k) {
+            // Check if the values are in the same cells
+            if (areValuesInSameCells(cells, hiddenPairValues[i], hiddenPairValues[k])) {
+                // Check if it is a hidden pair and not a naked pair
+                for (int j = 0; j < BOARD_SIZE - 1; j++) {
+                    for (int l = j + 1; l < BOARD_SIZE; l++) {
+                        if ((isCandidate(cells[j], hiddenPairValues[i]) &&
+                             isCandidate(cells[j], hiddenPairValues[k])) &&
+                            (isCandidate(cells[l], hiddenPairValues[i]) &&
+                             isCandidate(cells[l], hiddenPairValues[k]))) {
+
+                            HiddenPairInfo hiddenPairObj;
+                            hiddenPairObj.firstValue = hiddenPairValues[i];
+                            hiddenPairObj.secondValue = hiddenPairValues[k];
+                            hiddenPairObj.firstCell = cells[j];
+                            hiddenPairObj.secondCell = cells[l];
+                            hiddenPairs[(*pairCount)++] = hiddenPairObj;
+                            break;
+                        }
+                    }
                 }
             }
         }
     }
+}
 
-    return changed_count;
+int detectOverlapInHiddenPairs(HiddenPairInfo *hiddenPairs, int pairCount) {
+    int overlap = pairCount;
+
+    for (int i = 0; i < pairCount; ++i) {
+        int notOverlap = 0;
+        Cell *hiddenPairCell1 = hiddenPairs[i].firstCell;
+        Cell *hiddenPairCell2 = hiddenPairs[i].secondCell;
+        int *candidates1 = getCandidates(hiddenPairCell1);
+        int numCandidates = hiddenPairCell1->num_candidates;
+
+        for (int j = 0; j < numCandidates; ++j) {
+            if (candidates1[j] != hiddenPairs[i].firstValue && candidates1[j] != hiddenPairs[i].secondValue) {
+                unsetCandidate(hiddenPairCell1, candidates1[j]);
+                notOverlap = 1;
+            }
+        }
+
+        free(candidates1);
+
+        int *candidates2 = getCandidates(hiddenPairCell2);
+        numCandidates = hiddenPairCell2->num_candidates;
+
+        for (int j = 0; j < numCandidates; ++j) {
+            if (candidates2[j] != hiddenPairs[i].firstValue && candidates2[j] != hiddenPairs[i].secondValue) {
+                unsetCandidate(hiddenPairCell2, candidates2[j]);
+                notOverlap = 1;
+            }
+        }
+
+        free(candidates2);
+        overlap -= notOverlap;
+    }
+
+    return overlap;
+}
+
+int locateHiddenPairs(SudokuBoard *board) {
+    HiddenPairInfo hiddenPairs[BOARD_SIZE * BOARD_SIZE];
+    int counter = 0;
+    int overlap = 0;
+
+    for (int i = 0; i < BOARD_SIZE; ++i) {
+        identifyHiddenPairs(board->p_rows[i], hiddenPairs, &counter);
+        identifyHiddenPairs(board->p_cols[i], hiddenPairs, &counter);
+        identifyHiddenPairs(board->p_boxes[i], hiddenPairs, &counter);
+    }
+
+    overlap = detectOverlapInHiddenPairs(hiddenPairs, counter);
+    return (counter - overlap);
 }
